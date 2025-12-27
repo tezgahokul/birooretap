@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; padding: 20px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .card { background: #333; padding: 15px; border-radius: 10px; border-top: 5px solid gray; }
+        .online { border-top-color: #00ff00; box-shadow: 0 0 10px rgba(0,255,0,0.2); }
+        .offline { border-top-color: #ff0000; opacity: 0.6; }
+        .status-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+        .dot-online { background: #04ff04; }
+        .dot-offline { background: #ff0000; }
+    </style>
+</head>
+<body>
+    <h1></h1>                                                                                                            
+    <div id="deviceGrid" class="grid">Yükleniyor...</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyB47g_CyDXPM_eCeHyVfLg9PB24boD5xKY",
+    authDomain: "birooretap.firebaseapp.com",
+    projectId: "birooretap",
+    storageBucket: "birooretap.appspot.com",
+    messagingSenderId: "28899321149",
+    appId: "1:28899321149:web:420b38058db31b06439154"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+onSnapshot(collection(db, "presence"), (snap) => {
+    const grid = document.getElementById("deviceGrid");
+    grid.innerHTML = "";
+    
+    snap.forEach(doc => {
+        const data = doc.data();
+        const lastSeen = data.lastSeen?.toDate() || new Date();
+        const diff = (new Date() - lastSeen) / 1000;
+        
+        
+        const isOnline = (data.status === "online" && diff < 5);
+        
+        grid.innerHTML += `
+            <div class="card ${isOnline ? 'online' : 'offline'}">
+                <h3>${data.className}</h3>
+                <p>${data.deviceName}</p>
+                <p><span class="status-dot ${isOnline ? 'dot-online' : 'dot-offline'}"></span> 
+                ${isOnline ? 'Çevrimiçi' : 'Çevrimdışı'}</p>
+                <small>Son görülme: ${lastSeen.toLocaleTimeString()}</small>
+            </div>`;
+    });
+});
+</script>
+</body>
+</html>

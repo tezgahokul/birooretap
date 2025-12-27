@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biroor | Kurulum Merkezi</title>
+    <style>
+        :root {
+            --android-green: #3DDC84;
+            --ios-white: #ffffff;
+            --bg-dark: #121212;
+            --card-bg: #1e1e1e;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-dark);
+            color: white;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #00c4cc;
+            margin-bottom: 5px;
+            font-size: 2.2rem;
+        }
+
+        .subtitle {
+            color: #777;
+            margin-bottom: 40px;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            width: 100%;
+            max-width: 800px;
+        }
+
+      
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 30px;
+            width: 260px; 
+            height: 380px; 
+            text-align: center;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            transition: 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            border-color: #555;
+        }
+
+        .icon-box {
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 10px;
+        }
+
+        .icon-box svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .card h2 {
+            margin: 10px 0;
+            font-size: 1.4rem;
+        }
+
+        .info {
+            font-size: 0.85rem;
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+ 
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px 0;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: 0.2s;
+        }
+
+        .btn-android {
+            background-color: var(--android-green);
+            color: #000;
+        }
+
+        .btn-ios {
+            background-color: var(--ios-white);
+            color: #000;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .back-link {
+            margin-top: 40px;
+            color: #444;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .back-link:hover {
+            color: #00c4cc;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Biroor Kurulum</h1>
+    <p class="subtitle">İşletim sisteminize uygun olanı seçin</p>
+    
+    <div class="container">
+        
+        <div class="card">
+            <div class="icon-box">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#3DDC84" d="M17.523 15.3414C17.0607 15.3414 16.6859 14.9666 16.6859 14.5043C16.6859 14.0419 17.0607 13.6672 17.523 13.6672C17.9854 13.6672 18.3602 14.0419 18.3602 14.5043C18.3602 14.9666 17.9854 15.3414 17.523 15.3414ZM6.47702 15.3414C6.01467 15.3414 5.63989 14.9666 5.63989 14.5043C5.63989 14.0419 6.01467 13.6672 6.47702 13.6672C6.93937 13.6672 7.31415 14.0419 7.31415 14.5043C7.31415 14.9666 6.93937 15.3414 6.47702 15.3414ZM17.8966 10.4566L19.4589 7.75056C19.5855 7.53123 19.5105 7.25048 19.2912 7.12384C19.0718 6.9972 18.7911 7.07221 18.6644 7.29154L17.081 10.0341C15.6179 9.36442 13.9015 8.99507 12 8.99507C10.0985 8.99507 8.38209 9.36442 6.91897 10.0341L5.33558 7.29154C5.20894 7.07221 4.92819 6.9972 4.70886 7.12384C4.48953 7.25048 4.41452 7.53123 4.54116 7.75056L6.10344 10.4566C3.06456 12.1158 1 15.3113 1 19.0182H23C23 15.3113 20.9354 12.1158 17.8966 10.4566Z"/>
+                </svg>
+            </div>
+            <div>
+                <h2>Android APK</h2>
+                <p class="info">Telefon & Tablet<br>Sürüm 0.3.2</p>
+            </div>
+            <a href="Birooretahta0.3.2.apk" download class="btn btn-android">İNDİR</a>
+        </div>
+
+        <div class="card">
+            <div class="icon-box">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#ffffff" d="M17.057 12.781c.032 2.588 2.254 3.462 2.287 3.477-.023.074-.355 1.213-1.155 2.379-.693 1.012-1.413 2.019-2.54 2.039-1.108.02-1.464-.653-2.731-.653-1.268 0-1.664.633-2.711.673-1.107.039-1.928-1.079-2.626-2.089-1.428-2.069-2.516-5.842-1.047-8.381.729-1.258 2.029-2.058 3.435-2.078 1.07-.02 2.078.72 2.731.72.653 0 1.861-.893 3.129-.766.531.022 2.022.213 2.977 1.61-.077.048-1.777 1.037-1.75 3.1zM14.653 4.295c.573-.693.957-1.658.852-2.62-.83.033-1.833.551-2.428 1.244-.533.619-.999 1.597-.874 2.541.928.071 1.878-.472 2.45-1.165z"/>
+                </svg>
+            </div>
+            <div>
+                <h2>iOS / Web</h2>
+                <p class="info">iPhone & iPad<br>Ana Ekrana Ekle</p>
+            </div>
+            <a href="ios.html" class="btn btn-ios">AÇ</a>
+        </div>
+
+    </div>
+
+    <a href="index.html" class="back-link">← Ana Panele Dön</a>
+
+</body>
+</html>

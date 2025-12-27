@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8">
+    <title>Biroor Akıllı Tahta Paneli</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { margin: 0; padding: 0; font-family: "Segoe UI", Arial, sans-serif; background: linear-gradient(135deg, #00c4cc, #7d2ae8); height: 100vh; display: flex; flex-direction: column; color: #fff; overflow: hidden; }
+        #setupOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); backdrop-filter: blur(15px); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .setup-box { background: rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2); width: 400px; }
+        .setup-box select, .setup-box input { padding: 15px; font-size: 18px; border-radius: 10px; border: none; margin: 10px 0; width: 100%; box-sizing: border-box; }
+        .top { display: flex; height: 100vh; padding: 20px; gap: 20px; }
+        .clock-panel { width: 28%; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(8px); border-radius: 20px; padding: 30px; display: flex; flex-direction: column; justify-content: center; text-align: center; box-shadow: 0 0 30px rgba(0,0,0,0.3); }
+        #clock { font-size: 80px; font-weight: bold; }
+        #date { font-size: 28px; opacity: 0.8; margin-bottom: 20px;}
+        #classDisplay { font-size: 22px; color: #00fff5; font-weight: bold; cursor: pointer; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; line-height: 1.5; }
+        .lessons-panel { flex: 1; background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(8px); border-radius: 20px; padding: 30px; display: flex; flex-direction: column; box-shadow: 0 0 30px rgba(0,0,0,0.3); }
+        .lesson-box { background: rgba(255, 255, 255, 0.15); padding: 15px; border-radius: 12px; margin-bottom: 8px; font-size: 22px; border-left: 6px solid #00fff5; }
+        .active-lesson { background: rgba(0,255,245,0.4) !important; border-left-color: #fff !important; transform: scale(1.02); }
+        .right-panel { width: 30%; display: flex; flex-direction: column; gap: 15px; }
+        .widget { background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(8px); border-radius: 20px; padding: 15px; box-shadow: 0 0 30px rgba(0,0,0,0.3); }
+        button { padding: 10px; border: none; border-radius: 8px; cursor: pointer; background: #00c4cc; color: #fff; font-weight: bold; transition: 0.3s; }
+        button:hover { background: #008c91; }
+        input { padding: 10px; border-radius: 8px; border: none; width: 90%; margin-bottom: 10px; }
+        .homework-item { background: rgba(255,255,255,0.1); margin: 5px 0; padding: 8px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .delete-btn { background: #ff4b2b !important; padding: 5px 10px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div id="setupOverlay" style="display: none;">
+    <div class="setup-box">
+        <h1>Biroor Panel Kurulumu</h1>
+        <p>Sınıfı seçin:</p>
+        <select id="classSelector">
+            <option value="5A">5-A</option><option value="5B">5-B</option><option value="5C">5-C</option><option value="5D">5-D</option>
+            <option value="6A">6-A</option><option value="6B">6-B</option><option value="6C">6-C</option>
+            <option value="7A">7-A</option><option value="7B">7-B</option><option value="7C">7-C</option><option value="7D">7-D</option>
+            <option value="8A">8-A</option><option value="8B">8-B</option><option value="8C">8-C</option>
+        </select>
+        <p>Cihaz İsmi Girin:</p>
+        <input type="text" id="deviceNameInput" placeholder="Cihaz Adı">
+        <br><br>
+        <button onclick="saveClassChoice()" style="padding: 15px 40px; font-size: 18px;">Sistemi Başlat</button>
+    </div>
+</div>
+
+<div class="top">
+    <div class="clock-panel">
+        <div id="clock">00:00</div>
+        <div id="date">...</div>
+        <div id="classDisplay" onclick="resetSetup()">-- / --</div>
+        <div id="currentLesson" style="margin-top:20px; font-size:22px; color:#ffeb3b;">Yükleniyor...</div>
+    </div>
+
+    <div class="lessons-panel">
+        <h2 id="dayTitle">Ders Programı</h2>
+        <div id="lessons"></div>
+    </div>
+
+    <div class="right-panel">
+        <button id="fullscreenBtn">Tam Ekran</button>
+        <button onclick="window.location.href='indir.html'" style=" height: 45px; background: #ff9800; white-space: nowrap; font-size: 14px; padding: 0 5px; font-weight: bold;">
+        🚀 Kur
+    </button>
+        <div class="widget">
+            <h3>Ödev Tahtası</h3>
+            <div id="homeworkBox" style="max-height: 150px; overflow-y: auto; margin-bottom:10px;"></div>
+            <input type="text" id="hwTitle" placeholder="Ödev Başlığı">
+            <input type="text" id="hwDesc" placeholder="Ödev Açıklaması">
+            <button id="addHomework" style="width:100%">Ekle</button>
+        </div>
+        <div class="widget" id="weatherWidget">
+            <h3>Cide Hava Durumu</h3>
+            <div id="weatherBox" style="text-align:center;">...</div>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, getDocs, setDoc, addDoc, deleteDoc, doc, query, where, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyB47g_CyDXPM_eCeHyVfLg9PB24boD5xKY",
+    authDomain: "birooretap.firebaseapp.com",
+    projectId: "birooretap",
+    storageBucket: "birooretap.appspot.com",
+    messagingSenderId: "28899321149",
+    appId: "1:28899321149:web:420b38058db31b06439154"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const lessonIcons = {
+    "MAT": "📐", "FEN": "🧪", "TÜRK6": "📚", "TÜRK5": "📚", "İNG3": "🌍", "İNG4": "🌍",
+    "SOSYL": "🗺️", "DİN": "🌙", "BEDEN": "⚽", "MÜZİK": "🎵", "GÖRSEL": "🎨",
+    "BİLİŞ": "💻", "ROBOTK": "🤖", "TDB": "📖", "REHBR": "🤝", "İNKLP": "🇹🇷",
+    "TEK T.": "🛠️", "SİNG": "🗣️", "OYUN1": "🎮", "OYUN2": "🎮", "AHLAK": "💎", "ÇEVİD": "🌿", "GÖRGÜ": "🤝", "PROJE": "💡"
+};
+
+const schoolData = {
+    "5A": {
+        "Pazartesi": ["MAT","MAT","TDB","TDB","SOSYL","BİLİŞ","BİLİŞ"],
+        "Salı": ["İNG3","İNG3","MAT","MAT","OYUN1","TÜRK6","TÜRK6"],
+        "Çarşamba": ["GÖRSEL","FEN","FEN","BEDEN","BEDEN","TÜRK6","TÜRK6"],
+        "Perşembe": ["DİN","DİN","SİNG","SİNG","SOSYL","SOSYL","REHBR"],
+        "Cuma": ["İNG3","MÜZİK","MAT","FEN","FEN","TÜRK6","TÜRK6"]
+    },
+    "5B": {
+        "Pazartesi": ["SİNG","SİNG","İNG3","MAT","MAT","TÜRK6","TÜRK6"],
+        "Salı": ["FEN","FEN","TÜRK6","TÜRK6","MAT","TDB","TDB"],
+        "Çarşamba": ["BİLİŞ","BİLİŞ","MAT","MAT","SOSYL","BEDEN","BEDEN"],
+        "Perşembe": ["FEN","FEN","SOSYL","SOSYL","REHBR","DİN","DİN"],
+        "Cuma": ["GÖRSEL","İNG3","İNG3","TÜRK6","TÜRK6","MÜZİK","OYUN1"]
+    },
+    "5C": {
+        "Pazartesi": ["TÜRK6","TÜRK6","MAT","İNG3","SOSYL","SOSYL","GÖRSEL"],
+        "Salı": ["TÜRK6","TÜRK6","İNG3","İNG3","FEN","FEN","SOSYL"],
+        "Çarşamba": ["MAT","MAT","DİN","DİN","OYUN1","FEN","FEN"],
+        "Perşembe": ["MÜZİK","TDB","TDB","TÜRK6","TÜRK6","BİLİŞ","BİLİŞ"],
+        "Cuma": ["MAT","MAT","BEDEN","BEDEN","SİNG","SİNG","REHBR"]
+    },
+    "5D": {
+        "Pazartesi": ["DİN","DİN","REHBR","TÜRK6","TÜRK6","İNG3","SOSYL"],
+        "Salı": ["MAT","MAT","BİLİŞ","BİLİŞ","SOSYL","SOSYL","OYUN1"],
+        "Çarşamba": ["BEDEN","BEDEN","İNG3","İNG3","MAT","FEN","FEN"],
+        "Perşembe": ["SİNG","SİNG","MÜZİK","TDB","TDB","TÜRK6","TÜRK6"],
+        "Cuma": ["TÜRK6","TÜRK6","GÖRSEL","MAT","MAT","FEN","FEN"]
+    },
+    "6A": {
+        "Pazartesi": ["ROBOTK","ROBOTK","TÜRK6","TÜRK6","GÖRSEL","DİN","DİN"],
+        "Salı": ["BEDEN","BEDEN","MAT","FEN","FEN","BİLİŞ","BİLİŞ"],
+        "Çarşamba": ["İNG3","İNG3","MAT","MAT","REHBR","TÜRK6","TÜRK6"],
+        "Perşembe": ["SOSYL","SOSYL","TÜRK6","TÜRK6","FEN","FEN","OYUN1"],
+        "Cuma": ["MÜZİK","MAT","MAT","İNG3","SOSYL","TDB","TDB"]
+    },
+    "6B": {
+        "Pazartesi": ["MAT","MAT","İNG3","FEN","FEN","TÜRK6","TÜRK6"],
+        "Salı": ["TDB","TDB","İNG3","İNG3","SOSYL","TÜRK6","TÜRK6"],
+        "Çarşamba": ["MAT","MAT","SOSYL","SOSYL","DİN","DİN","OYUN1"],
+        "Perşembe": ["TÜRK6","TÜRK6","ROBOTK","ROBOTK","BEDEN","BEDEN","REHBR"],
+        "Cuma": ["MAT","BİLİŞ","BİLİŞ","FEN","FEN","GÖRSEL","MÜZİK"]
+    },
+    "6C": {
+        "Pazartesi": ["TÜRK6","TÜRK6","TDB","TDB","MÜZİK","MAT","MAT"],
+        "Salı": ["FEN","FEN","SOSYL","TÜRK6","TÜRK6","BEDEN","BEDEN"],
+        "Çarşamba": ["FEN","FEN","DİN","DİN","ROBOTK","ROBOTK","MAT"],
+        "Perşembe": ["BİLİŞ","BİLİŞ","İNG3","İNG3","TÜRK6","TÜRK6","REHBR"],
+        "Cuma": ["OYUN1","GÖRSEL","SOSYL","SOSYL","İNG3","MAT","MAT"]
+    },
+    "7A": {
+        "Pazartesi": ["İNG4","İNG4","TÜRK5","TÜRK5","MAT","MAT","MÜZİK"],
+        "Salı": ["TÜRK5","GÖRSEL","SOSYL","MAT","MAT","TEK T.","TEK T."],
+        "Çarşamba": ["DİN","DİN","FEN","FEN","REHBR","İNG4","İNG4"],
+        "Perşembe": ["FEN","FEN","SOSYL","SOSYL","PROJE","AHLAK","AHLAK"],
+        "Cuma": ["BEDEN","BEDEN","OYUN2","OYUN2","TÜRK5","TÜRK5","MAT"]
+    },
+    "7B": {
+        "Pazartesi": ["TÜRK5","TÜRK5","MAT","MAT","AHLAK","AHLAK","PROJE"],
+        "Salı": ["MAT","MAT","DİN","DİN","REHBR","İNG4","İNG4"],
+        "Çarşamba": ["İNG4","İNG4","GÖRSEL","SOSYL","SOSYL","TEK T.","TEK T."],
+        "Perşembe": ["TÜRK5","TÜRK5","FEN","FEN","SOSYL","OYUN2","OYUN2"],
+        "Cuma": ["FEN","FEN","MÜZİK","MAT","BEDEN","BEDEN","TÜRK5"]
+    },
+    "7C": {
+        "Pazartesi": ["SOSYL","FEN","FEN","MÜZİK","TÜRK5","BEDEN","BEDEN"],
+        "Salı": ["GÖRSEL","TÜRK5","TÜRK5","DİN","DİN","İNG4","İNG4"],
+        "Çarşamba": ["SOSYL","SOSYL","İNG4","İNG4","MAT","MAT","REHBR"],
+        "Perşembe": ["OYUN2","OYUN2","MAT","TÜRK5","TÜRK5","AHLAK","AHLAK"],
+        "Cuma": ["FEN","FEN","TEK T.","TEK T.","MAT","MAT","PROJE"]
+    },
+    "7D": {
+        "Pazartesi": ["GÖRSEL","MÜZİK","SOSYL","SOSYL","TEK T.","TEK T.","MAT"],
+        "Salı": ["İNG4","İNG4","PROJE","TÜRK5","TÜRK5","MAT","MAT"],
+        "Çarşamba": ["OYUN2","OYUN2","SOSYL","FEN","FEN","MAT","MAT"],
+        "Perşembe": ["BEDEN","BEDEN","TÜRK5","DİN","DİN","İNG4","İNG4"],
+        "Cuma": ["TÜRK5","TÜRK5","REHBR","AHLAK","AHLAK","FEN","FEN"]
+    },
+    "8A": {
+        "Pazartesi": ["DİN","DİN","GÖRSEL","İNG4","İNG4","FEN","FEN"],
+        "Salı": ["İNKLP","İNKLP","FEN","FEN","TÜRK5","GÖRGÜ","GÖRGÜ"],
+        "Çarşamba": ["ÇEVİD","ÇEVİD","BEDEN","BEDEN","TÜRK5","TÜRK5","MAT"],
+        "Perşembe": ["MAT","MAT","TÜRK5","TÜRK5","REHBR","AHLAK","AHLAK"],
+        "Cuma": ["MAT","MAT","İNG4","İNG4","MÜZİK","TEK T.","TEK T."]
+    },
+    "8B": {
+        "Pazartesi": ["FEN","FEN","MÜZİK","GÖRGÜ","GÖRGÜ","İNG4","İNG4"],
+        "Salı": ["DİN","DİN","TÜRK5","ÇEVİD","ÇEVİD","FEN","FEN"],
+        "Çarşamba": ["MAT","MAT","İNG4","İNG4","GÖRSEL","AHLAK","AHLAK"],
+        "Perşembe": ["İNKLP","İNKLP","BEDEN","BEDEN","MAT","TÜRK5","TÜRK5"],
+        "Cuma": ["TEK T.","TEK T.","MAT","MAT","REHBR","TÜRK5","TÜRK5"]
+    },
+    "8C": {
+        "Pazartesi": ["MÜZİK","ÇEVİD","ÇEVİD","FEN","FEN","BEDEN","BEDEN"],
+        "Salı": ["TÜRK5","TÜRK5","İNG4","İNG4","GÖRSEL","MAT","MAT"],
+        "Çarşamba": ["DİN","DİN","MAT","MAT","İNG4","İNG4","TÜRK5"],
+        "Perşembe": ["GÖRGÜ","GÖRGÜ","FEN","FEN","REHBR","TEK T.","TEK T."],
+        "Cuma": ["İNKLP","İNKLP","TÜRK5","TÜRK5","AHLAK","AHLAK","MAT"]
+    }
+};
+
+const lessonHours = [
+    {s: "08:30", e: "09:10"}, {s: "09:20", e: "10:00"}, {s: "10:10", e: "10:50"},
+    {s: "11:00", e: "11:40"}, {s: "11:50", e: "12:30"}, {s: "13:40", e: "14:20"}, {s: "14:30", e: "15:10"}
+];
+
+window.saveClassChoice = () => {
+    const selClass = document.getElementById("classSelector").value;
+    const selName = document.getElementById("deviceNameInput").value || "Adsız Cihaz";
+    localStorage.setItem("myClass", selClass);
+    localStorage.setItem("deviceName", selName);
+    location.reload();
+};
+
+window.resetSetup = () => { if(confirm("ayarlar sıfırlansın mı?")) { localStorage.clear(); location.reload(); } };
+
+const currentClass = localStorage.getItem("myClass") || "";
+const deviceName = localStorage.getItem("deviceName") || "";
+
+if(!currentClass || !deviceName) {
+    document.getElementById("setupOverlay").style.display = "flex";
+} else {
+    document.getElementById("classDisplay").innerText = currentClass + " / " + deviceName;
+    startApp();
+}
+
+function startApp() {
+    const hwCol = collection(db, "homeworks");
+
+    const presenceDoc = doc(db, "presence", currentClass + "_" + deviceName.replace(/\s+/g, '_'));
+    const cNum = parseInt(currentClass.charAt(0));
+    const cSec = currentClass.charAt(1);
+
+    async function updatePresence() {
+        try {
+            await setDoc(presenceDoc, {
+                className: currentClass,
+                deviceName: deviceName,
+                lastSeen: serverTimestamp(),
+                status: "online"
+            }, { merge: true });
+        } catch (e) { console.error("Presence Error:", e); }
+    }
+
+    async function loadHW() {
+        const q = query(hwCol, where("classNumber", "==", cNum), where("classSection", "==", cSec));
+        const snap = await getDocs(q);
+        const box = document.getElementById("homeworkBox");
+        box.innerHTML = "";
+        snap.forEach(d => {
+            box.innerHTML += `
+                <div class="homework-item">
+                    <span><b>${d.data().title}</b>: ${d.data().desc}</span>
+                    <button class="delete-btn" onclick="window.delHW('${d.id}', '${d.data().title}')">SİL</button>
+                </div>`;
+        });
+    }
+
+    document.getElementById("addHomework").onclick = async () => {
+        const t = document.getElementById("hwTitle").value;
+        const d = document.getElementById("hwDesc").value;
+        if(t) {
+            await addDoc(hwCol, { title: t, desc: d, classNumber: cNum, classSection: cSec });
+            document.getElementById("hwTitle").value = ""; document.getElementById("hwDesc").value = "";
+            loadHW();
+        }
+    };
+    
+    window.delHW = async (id, title) => { 
+        if(confirm(`"${title}" ödevini silmek istediğinize emin misiniz?`)) {
+            await deleteDoc(doc(db, "homeworks", id)); 
+            loadHW(); 
+        }
+    };
+
+    function tick() {
+        const now = new Date();
+        const day = now.toLocaleDateString("tr-TR", {weekday: "long"});
+        const timeStr = now.getHours().toString().padStart(2,'0') + ":" + now.getMinutes().toString().padStart(2,'0');
+        
+        document.getElementById("clock").innerText = timeStr;
+        document.getElementById("date").innerText = now.toLocaleDateString("tr-TR", {day:'numeric', month:'long'});
+        
+        const prog = schoolData[currentClass] ? schoolData[currentClass][day] : null;
+        const list = document.getElementById("lessons");
+        list.innerHTML = "";
+        
+        if (!prog) {
+            document.getElementById("currentLesson").innerText = "İyi Tatiller! ";
+            list.innerHTML = "<div style='text-align:center; margin-top:50px; font-size:24px;'>Bugün ders programı bulunmuyor.</div>";
+        } else {
+            let found = false;
+            prog.forEach((ders, i) => {
+                const isCur = (timeStr >= lessonHours[i].s && timeStr <= lessonHours[i].e);
+                const icon = lessonIcons[ders] || "📝";
+                list.innerHTML += `<div class="lesson-box ${isCur?'active-lesson':''}"> ${icon} ${i+1}. Ders: ${ders} <span style="float:right; font-size:14px; opacity:0.8;">${lessonHours[i].s} - ${lessonHours[i].e}</span></div>`;
+                if(isCur) { 
+                    const [hEnd, mEnd] = lessonHours[i].e.split(':');
+                    const endTime = new Date();
+                    endTime.setHours(parseInt(hEnd), parseInt(mEnd), 0);
+                    const diff = Math.ceil((endTime - now) / 60000);
+                    document.getElementById("currentLesson").innerHTML = `Ders: ${ders} <br> <span style="font-size:18px; color:#fff;">(Bitişe ${diff} dk kaldı)</span>`; 
+                    found = true; 
+                }
+            });
+            if(!found) document.getElementById("currentLesson").innerText = "Şu an: Teneffüs ☕";
+        }
+        
+ 
+        updatePresence(); 
+    }
+
+    loadHW();
+    setInterval(tick, 1000); tick();
+    getWeather();
+}
+
+async function getWeather() {
+    try {
+        const r = await fetch("https://api.open-meteo.com/v1/forecast?latitude=41.89&longitude=32.99&current_weather=true");
+        const d = await r.json();
+        const w = d.current_weather;
+        const code = w.weathercode;           
+        let icon="☀️";
+        if(code>=1 && code<=3) icon="⛅";
+        if(code>=45) icon="🌫️";
+        if(code>=51) icon="🌦️";
+        if(code>=61) icon="🌧️";
+        if(code>=71) icon="❄️";
+        if(code>=95) icon="⛈️";
+        document.getElementById("weatherBox").innerHTML = `<h1 style="margin:0;">${icon} ${Math.round(w.temperature)}°C</h1><small>Cide, Kastamonu</small>`;
+    } catch(e) { }
+}
+
+const fsBtn = document.getElementById("fullscreenBtn");
+fsBtn.onclick = () => {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+    else document.exitFullscreen();
+};
+</script>
+<div style="display: flex; gap: 10px; margin-top: 5px;">
+
+</body>
+</html>
